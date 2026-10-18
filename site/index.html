@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pennsylvania Firearms Record</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,560;9..144,660&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,560;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="mast">
+    <div class="mast-title">
+      <p class="eyebrow">pagunlaws.net</p>
+      <h1>Pennsylvania Firearms Record</h1>
+    </div>
+    <p class="disclaimer" id="disclaimer"></p>
+  </header>
+  <div class="screen">
+    <nav class="rail" aria-label="Filters">
+      <p class="rail-label">Topics</p>
+      <div id="topics" class="topic-list"></div>
+      <p class="rail-label">One filter at a time</p>
+      <form id="proposal-form" class="ask">
+        <button type="button" class="ask-toggle" id="proposal-toggle">Proposed Legislation</button>
+        <label class="ask-label" for="proposal-text">Paste an ordinance, regulation, bill, or statute</label>
+        <textarea id="proposal-text" name="text" rows="5"></textarea>
+        <button type="submit">Show what it runs into</button>
+        <p class="ask-error" id="proposal-error" role="status"></p>
+      </form>
+      <form id="scenario-form" class="ask">
+        <button type="button" class="ask-toggle" id="scenario-toggle">Explore Scenario</button>
+        <label class="ask-label" for="scenario-text">Describe what happened</label>
+        <textarea id="scenario-text" name="text" rows="5"></textarea>
+        <button type="submit">Show what is potentially in play</button>
+        <p class="ask-error" id="scenario-error" role="status"></p>
+      </form>
+    </nav>
+    <div class="work">
+      <section class="strip" id="strip" aria-label="The whole record"></section>
+      <div class="below">
+        <section class="column" id="column" aria-label="Instruments in this filter"></section>
+        <article class="pane" id="pane" aria-live="polite"></article>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

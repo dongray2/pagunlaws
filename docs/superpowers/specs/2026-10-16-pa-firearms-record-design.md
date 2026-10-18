@@ -45,10 +45,11 @@ These are curated walks. They are not asked of the model. A statute is stored on
 4. Defensive gun use
 5. Hunting gun use
 6. Buying, selling, gifting, inheriting
-7. Owning NFA items
-8. Transportation
-9. Philadelphia
-10. Preemption and supremacy
+7. Loss and restoration of gun rights
+8. Owning NFA items
+9. Transportation
+10. Philadelphia
+11. Preemption and supremacy
 
 **All Laws** is the open tree. Choosing it again clears Proposed Legislation and Explore Scenario.
 
@@ -88,6 +89,8 @@ Neighboring bodies of law enter only far enough to complete that picture. The re
 - Defensive gun use gets the justification rules that decide when using the gun is lawful, not the whole law of crime and defense.
 - Hunting gets the Game Code rules that limit a gun in the field, and the sportsman's permit that ties that use back to 18 Pa.C.S. § 6106.
 - Owning NFA items is a Pennsylvania offense. Under 18 Pa.C.S. § 908, a machine gun, a shotgun with a barrel under 18 inches, and a firearm specially made or specially adapted for concealment or silent discharge are offensive weapons. Possessing or using one is a misdemeanor of the first degree unless authorized by law. Compliance with the National Firearms Act is a defense the person must prove, and that defense does not cover a bomb, grenade, or incendiary device. Section 908(b)(3) says the section does not apply to a firearm used or possessed for a purpose Pennsylvania law does not prohibit. Both sentences stay visible. The federal act is on the walk because it decides that Pennsylvania question. The walk stops there.
+
+Loss and restoration of gun rights is who may not possess a firearm under Pennsylvania law, and how that disability is lifted. The walk is built to hold 18 Pa.C.S. § 6105 (persons not to possess, use, manufacture, control, sell or transfer firearms), including the court application for relief from that disability, and § 6105.1 (restoration of firearm rights for offenses under prior laws of this Commonwealth). A pardon or an expungement is on the walk only as far as it changes firearm possession. A federal prohibition that still binds the person after Pennsylvania has restored the right is on the walk, because it changes whether that person may possess a firearm here. The walk does not decide that a particular person has lost or regained the right. Those sections were identified on the General Assembly site. Their text and effective dates are not loaded until a person checks them. This topic was added on October 18, 2026, and placed after buying, selling, gifting, and inheriting.
 
 The defensive-gun-use walk ends by asking whether the gun, the manner, or the place adds an offense the shooting does not answer.
 
@@ -163,6 +166,7 @@ Context may discuss laws and cases that are not instruments on the tree. That di
 - One screen: whole-record strip, filtered column, instrument pane.
 - Topics, proposals, and scenarios are filters on that tree.
 - All Laws is the first topic and the arrival selection.
+- Loss and restoration of gun rights is a curated topic. It sits after buying, selling, gifting, and inheriting.
 - The two filters under the topics are named Proposed Legislation and Explore Scenario.
 - Those two filters are an AI model using the tree data.
 - A law named by the model and absent from the tree is dimmed, with a scope message in the pane.

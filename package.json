@@ -1,0 +1,9 @@
+{
+  "name": "pagunlaws",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "stage": "node scripts/stage.js",
+    "test": "node --test"
+  }
+}
