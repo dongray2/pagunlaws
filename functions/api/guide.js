@@ -1,4 +1,4 @@
-import record from "../../data/record.json" with { type: "json" };
+import record from "../record.js";
 import { sanitizeModelResult } from "../../site/tree.js";
 import { grokText, parseJsonObject } from "../lib/grok.js";
 

@@ -4,3 +4,4 @@
 node_modules/
 dist/
 public/
+functions/record.js
