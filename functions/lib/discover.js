@@ -1,6 +1,8 @@
 import { grokText, parseJsonObject } from "./grok.js";
 import { RUN_LIMIT, addCandidates, applyFinding, knownKeys } from "./review.js";
 
+export const FURTHER_BATCH = 15;
+
 const WEB = [{ type: "web_search" }];
 
 export const CHAPTER_61_URL = "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.061..HTM";
@@ -92,11 +94,16 @@ export async function chapterCandidates() {
   });
 }
 
-export async function scout(apiKey, record, queue) {
+export async function seedChapter(record, queue) {
   const seeded = addCandidates(queue, record, await chapterCandidates());
-  if (seeded.queue.items.length >= RUN_LIMIT) return seeded;
-  const known = [...knownKeys(record, seeded.queue)];
-  const room = RUN_LIMIT - seeded.queue.items.length;
+  seeded.queue.further = seeded.queue.items.length > 0 ? "pending" : "idle";
+  return seeded;
+}
+
+export async function scoutFurther(apiKey, record, queue) {
+  const room = Math.min(FURTHER_BATCH, RUN_LIMIT - queue.items.length);
+  if (room <= 0) return { queue, added: 0 };
+  const known = [...knownKeys(record, queue)];
   const input = [
     "You are finding Pennsylvania firearms legislation that is not already in a record.",
     "The session laws credited on Title 18, Chapter 61 have already been read from the General Assembly site. Each of those acts is one item, even where the act changed several sections.",
@@ -112,9 +119,8 @@ export async function scout(apiKey, record, queue) {
   ].join("\n");
   const text = await grokText(apiKey, input, WEB);
   const parsed = parseJsonObject(text);
-  const items = Array.isArray(parsed.items) ? parsed.items : [];
-  const more = addCandidates(seeded.queue, record, items);
-  return { queue: more.queue, added: seeded.added + more.added };
+  const items = (Array.isArray(parsed.items) ? parsed.items : []).slice(0, room);
+  return addCandidates(queue, record, items);
 }
 
 export async function researchItem(apiKey, record, item) {

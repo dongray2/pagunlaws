@@ -28,6 +28,7 @@ let snapshot = null;
 let running = false;
 let stopAfterThis = false;
 let notice = "";
+let furtherBlocked = false;
 
 gate.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -51,23 +52,35 @@ start.addEventListener("click", async () => {
   start.disabled = true;
   notice = "";
   try {
+    if (!snapshot || snapshot.canStart) {
+      const result = await api("/api/admin/run", { method: "POST" });
+      notice = result.added
+        ? `Listed ${result.added} session laws from Chapter 61. Nothing is public until you approve one.`
+        : "No session laws were added from Chapter 61.";
+      statusEl.textContent = notice;
+      await refresh();
+    }
+    if (snapshot && snapshot.further === "pending" && !furtherBlocked) {
+      const warning = await lookFurther();
+      if (warning) {
+        notice = warning;
+        furtherBlocked = true;
+        await refresh();
+        if (!desk.hidden) statusEl.textContent = notice;
+        return;
+      }
+    }
+    if (stopAfterThis) {
+      notice = "Paused. The acts already listed are waiting. Another run waits until the queue is empty.";
+      await refresh();
+      if (!desk.hidden) statusEl.textContent = notice;
+      return;
+    }
     if (snapshot && snapshot.identified > 0) {
       await researchUntilPaused();
       return;
     }
-    if (!snapshot || !snapshot.canStart) {
-      paintStatus();
-      return;
-    }
-    const result = await api("/api/admin/run", { method: "POST" });
-    if (!result.added) {
-      notice = "No new legislation was found. The public record is unchanged.";
-      await refresh();
-      return;
-    }
-    notice = `Found ${result.added}. Researching one at a time. Nothing is public until you approve it.`;
-    statusEl.textContent = notice;
-    await researchUntilPaused();
+    await refresh();
   } catch (error) {
     notice = error.message;
     try {
@@ -136,8 +149,15 @@ function paintStatus() {
   if (queue.identified) parts.push(`${queue.identified} not researched yet`);
   parts.push("Unapproved legislation is not on the public record.");
   if (!queue.canStart) parts.push(BLOCKED);
+  if (queue.further === "pending") parts.push("The search for other acts has not finished.");
   if (notice) parts.push(notice);
   statusEl.textContent = parts.join(" ");
+  if (queue.further === "pending" && !furtherBlocked) {
+    start.hidden = false;
+    start.textContent = "Look for other acts";
+    start.disabled = false;
+    return;
+  }
   if (queue.identified > 0) {
     start.hidden = false;
     start.textContent = "Continue research";
@@ -146,6 +166,30 @@ function paintStatus() {
     start.hidden = true;
     start.disabled = true;
   }
+}
+
+async function lookFurther() {
+  running = true;
+  stopAfterThis = false;
+  pause.hidden = false;
+  pause.disabled = false;
+  pause.textContent = "Pause after this one";
+  let warning = "";
+  try {
+    for (let pass = 0; pass < 5 && snapshot && snapshot.further === "pending" && !stopAfterThis; pass += 1) {
+      statusEl.textContent = "Looking for firearms acts that are not credited on Chapter 61. The acts already listed are waiting.";
+      const more = await api("/api/admin/further", { method: "POST" });
+      if (more.added) notice = `${notice} Found ${more.added} more.`.trim();
+      await refresh();
+      if (!more.added || more.further === "done") break;
+    }
+  } catch (error) {
+    warning = `The acts already listed are waiting. The search for other acts did not finish. ${error.message} Reload this page to look again.`;
+  } finally {
+    running = false;
+    pause.hidden = true;
+  }
+  return warning;
 }
 
 async function researchUntilPaused() {
@@ -488,6 +532,6 @@ async function api(path, options = {}) {
     gateError.textContent = payload.error || "This review is for a Pennsylvania-licensed attorney.";
     throw new Error(gateError.textContent);
   }
-  if (!response.ok) throw new Error(payload.error || "The review request failed.");
+  if (!response.ok) throw new Error(payload.error || `The review request failed (${response.status}).`);
   return payload;
 }

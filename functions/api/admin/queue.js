@@ -10,6 +10,7 @@ export async function onRequestGet({ request, env }) {
   const identified = queue.items.filter((item) => item.reviewStatus === "identified" || item.reviewStatus === "researching").length;
   return json({
     canStart: canStartRun(queue),
+    further: queue.further,
     identified,
     pending: queue.items.length - identified,
     rejected: queue.rejected.length,

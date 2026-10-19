@@ -20,8 +20,13 @@ test("the review screen cannot publish or skip a waiting item", () => {
   assert.match(admin, /A new run cannot be completed while legislation is still waiting/);
   assert.match(admin, /Unapproved legislation is not on the public record/);
   assert.match(admin, /\/api\/admin\/run/);
+  assert.match(admin, /\/api\/admin\/further/);
   assert.match(admin, /\/api\/admin\/research/);
   assert.match(admin, /\/api\/admin\/decision/);
+  assert.match(admin, /The review request failed \(\$\{response\.status\}\)/);
+  const runAt = admin.indexOf('"/api/admin/run"');
+  const furtherAt = admin.indexOf('"/api/admin/further"');
+  assert.ok(runAt > -1 && furtherAt > runAt);
   assert.match(admin, /Verified against the official source/);
   assert.doesNotMatch(admin, /innerHTML/);
   assert.match(review, /export function canStartRun/);

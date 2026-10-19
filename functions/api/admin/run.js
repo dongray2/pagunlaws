@@ -1,4 +1,4 @@
-import { scout } from "../../lib/discover.js";
+import { seedChapter } from "../../lib/discover.js";
 import { authorize, json } from "../../lib/http.js";
 import { REVIEW_FIRST, canStartRun } from "../../lib/review.js";
 import { loadQueue, saveQueue } from "../../lib/queue-store.js";
@@ -12,12 +12,13 @@ export async function onRequestPost({ request, env }) {
   if (!queue) return json({ error: "The review queue is not configured yet." }, 503);
   if (!canStartRun(queue)) return json({ error: REVIEW_FIRST }, 409);
   try {
-    const found = await scout(env.XAI_API_KEY, record, queue);
-    await saveQueue(env, found.queue);
+    const seeded = await seedChapter(record, queue);
+    await saveQueue(env, seeded.queue);
     return json({
-      added: found.added,
-      identified: found.queue.items.length,
-      canStart: canStartRun(found.queue),
+      added: seeded.added,
+      identified: seeded.queue.items.length,
+      further: seeded.queue.further,
+      canStart: canStartRun(seeded.queue),
     });
   } catch (error) {
     return json({ error: error.message || "The search failed." }, 502);

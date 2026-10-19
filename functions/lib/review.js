@@ -19,15 +19,20 @@ const OFFICIAL_HOSTS = [
 const STATUSES = new Set(["in_force", "superseded", "not_yet_checked", "limited_by_court"]);
 
 export function emptyQueue() {
-  return { items: [], rejected: [], approved: [] };
+  return { items: [], rejected: [], approved: [], further: "idle" };
 }
 
 export function normalizeQueue(raw) {
   const source = raw && typeof raw === "object" ? raw : {};
+  const items = Array.isArray(source.items) ? source.items : [];
+  let further = "idle";
+  if (source.further === "pending" || source.further === "done") further = source.further;
+  else if (items.length > 0) further = "pending";
   return {
-    items: Array.isArray(source.items) ? source.items : [],
+    items,
     rejected: Array.isArray(source.rejected) ? source.rejected : [],
     approved: Array.isArray(source.approved) ? source.approved : [],
+    further,
   };
 }
 
