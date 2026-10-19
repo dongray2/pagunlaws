@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isChecked, quoteableDate } from "../site/tree.js";
+import { sectionsFromChapter } from "../functions/lib/discover.js";
 import {
   REVIEW_FIRST,
   RUN_LIMIT,
@@ -63,6 +64,36 @@ test("a new run cannot start while anything is waiting", () => {
   assert.equal(canStartRun(waiting), false);
   assert.match(REVIEW_FIRST, /cannot be completed/);
   assert.match(REVIEW_FIRST, /not on the public record/);
+});
+
+test("the consolidated chapter list is the first source", () => {
+  const html = [
+    "<p><b>Sec.</b></p>",
+    "<p>6106. &nbsp;Firearms not to be carried without a license.</p>",
+    "<p>1972. &nbsp;Not a section.</p>",
+    "<p>6106. &nbsp;A later mention is not a second section.</p>",
+    "<p>6105.1. &nbsp;Restoration of firearm rights for offenses under prior laws of this Commonwealth.</p>",
+  ].join("\n");
+  const sections = sectionsFromChapter(html);
+  assert.deepEqual(sections, [
+    { number: "6106", title: "Firearms not to be carried without a license" },
+    { number: "6105.1", title: "Restoration of firearm rights for offenses under prior laws of this Commonwealth" },
+  ]);
+  const { queue } = addCandidates(emptyQueue(), record, [
+    {
+      title: "18 Pa.C.S. § 6106. Firearms not to be carried without a license",
+      citation: "18 Pa.C.S. § 6106",
+      sourceUrl: "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.061..HTM",
+    },
+    {
+      title: "A blog",
+      citation: "18 Pa.C.S. § 6107",
+      sourceUrl: "https://example.com/notes",
+    },
+  ]);
+  assert.equal(queue.items[0].sourceUrl, "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.061..HTM");
+  assert.equal(queue.items[1].sourceUrl, "");
+  assert.equal(queue.items[0].citation, "18 Pa.C.S. § 6106");
 });
 
 test("the scout stops at 100 and skips laws already in the record", () => {

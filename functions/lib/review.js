@@ -109,7 +109,7 @@ export function addCandidates(queue, record, candidates) {
       text: "",
       textVerified: false,
       citationVerified: false,
-      sourceUrl: "",
+      sourceUrl: officialUrl(candidate && candidate.sourceUrl) ? candidate.sourceUrl.trim() : "",
       effectiveStatement: UNREAD_DATE,
       dateKind: "unchecked",
       dateVerified: false,

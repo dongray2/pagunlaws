@@ -124,7 +124,7 @@ function paintStatus() {
   const queue = snapshot;
   if (!queue || running) return;
   if (queue.items.length === 0) {
-    const ready = "Nothing is waiting. You can look for up to 100 pieces of legislation that are not already in the record.";
+    const ready = "Nothing is waiting. Find legislation starts with 18 Pa.C.S. Chapter 61, then looks for up to 100 pieces that are not already in the record.";
     statusEl.textContent = notice ? `${notice} ${ready}` : ready;
     start.hidden = false;
     start.textContent = "Find legislation";
