@@ -32,9 +32,25 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  align-items: end;
+  align-items: center;
   padding: 22px 28px 16px;
   border-bottom: 1px solid var(--rule);
+}
+
+.mast-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.mast-title { min-width: 0; }
+
+.mark {
+  width: 132px;
+  height: auto;
+  flex: none;
+  border-radius: 8px;
 }
 
 .eyebrow {
@@ -310,8 +326,15 @@ textarea {
 
 @media (max-width: 900px) {
   .mast, .screen, .below, .lane { display: block; }
+  .mark { width: 104px; }
   h1 { font-size: 32px; }
-  .disclaimer { margin-top: 10px; }
+  .disclaimer { max-width: none; margin-top: 10px; }
   .lane-track { margin: 4px 0 10px; }
   .column { border-right: 0; border-bottom: 1px solid var(--rule); }
+}
+
+@media (max-width: 520px) {
+  .mast { padding: 16px 16px 12px; }
+  .mark { width: 84px; }
+  h1 { font-size: 26px; }
 }
