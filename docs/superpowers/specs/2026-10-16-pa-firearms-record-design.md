@@ -111,6 +111,8 @@ The words come from the official sources. They are copied from those sources. Th
 
 A moment is published only after a person has checked the copied text against that source, written the citation, and read the effective-date clause. A script may fetch a known official page into a draft. The draft is not the record until that check is done. Version 1 does not run an unattended crawler that writes the tree on a schedule.
 
+A Pennsylvania-licensed attorney may start a review run by hand. The run asks the model, with web search, for Pennsylvania firearms legislation that is not already in the record, then a researcher pass tries to verify each item against an official page, including the effective-date clause. A run stops at 100 items. Nothing from that run is part of the public record until the attorney approves it. A field the researcher verified against an official source cannot be edited. A new run cannot be completed while any item is still waiting. The attorney approves, edits, or rejects each waiting item first.
+
 ## Proposed Legislation and Explore Scenario
 
 The reader pastes text or describes what happened. An AI model reads it. The tree is the data the model uses. The model returns moments that already exist, and a guide that walks those moments in order.

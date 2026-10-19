@@ -328,7 +328,18 @@ scenarioForm.addEventListener("submit", (event) => {
 proposalToggle.addEventListener("click", () => document.querySelector("#proposal-text").focus());
 scenarioToggle.addEventListener("click", () => document.querySelector("#scenario-text").focus());
 
-const response = await fetch("/record.json");
-state.record = await response.json();
+async function loadPublishedRecord() {
+  try {
+    const response = await fetch("/api/record");
+    if (response.ok) return await response.json();
+  } catch {
+    // The static file remains when the merge endpoint is down.
+  }
+  const response = await fetch("/record.json");
+  if (!response.ok) throw new Error("The record could not be loaded.");
+  return response.json();
+}
+
+state.record = await loadPublishedRecord();
 state.selected = state.record.moments.slice().sort((a, b) => (a.sort < b.sort ? -1 : 1))[0]?.id || null;
 render();

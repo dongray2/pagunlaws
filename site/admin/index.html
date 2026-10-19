@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attorney review — Pennsylvania Firearms Record</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,560;9..144,660&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,560;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <header class="mast">
+    <div class="mast-brand">
+      <a class="mark-link" href="/">
+        <img class="mark" src="/logo.png" width="88" height="54" alt="Pennsylvania Firearms Record">
+      </a>
+      <div class="mast-title">
+        <p class="eyebrow">pagunlaws.net</p>
+        <h1>Attorney review</h1>
+      </div>
+    </div>
+  </header>
+  <main class="review" id="review">
+    <p class="review-lead">This page is for a Pennsylvania-licensed attorney. A run looks for Pennsylvania firearms legislation that is not already in the record, then tries to verify each item against an official page. Nothing here is on the public record until you approve it. A new run cannot be completed while any item is still waiting.</p>
+    <form id="gate" class="gate">
+      <label for="token">Review key</label>
+      <input id="token" type="password" autocomplete="current-password">
+      <button type="submit">Open the queue</button>
+      <p id="gate-error" class="review-error" role="status"></p>
+    </form>
+    <section id="desk" hidden>
+      <p id="status" class="review-status" role="status"></p>
+      <div class="review-actions">
+        <button type="button" id="start">Find legislation</button>
+        <button type="button" id="pause" hidden>Pause after this one</button>
+      </div>
+      <div id="items"></div>
+    </section>
+  </main>
+  <script type="module" src="/admin/admin.js"></script>
+</body>
+</html>

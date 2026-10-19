@@ -1,0 +1,113 @@
+.mark-link { display: block; line-height: 0; }
+
+.mast .mark { width: 88px; height: auto; }
+
+.review {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 8px 28px 64px;
+}
+
+.review-lead,
+.review-status {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.gate,
+.item {
+  margin-top: 18px;
+  padding: 16px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+}
+
+.gate label,
+.item label,
+.lock {
+  display: block;
+  margin: 12px 0 4px;
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.review input,
+.review textarea,
+.review select {
+  width: 100%;
+  border: 1px solid var(--rule);
+  background: #fffdf8;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  padding: 8px;
+}
+
+.review textarea { min-height: 7em; resize: vertical; }
+
+.review-actions,
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.review button,
+.item button {
+  border: 1px solid var(--oxblood);
+  background: var(--oxblood);
+  color: #fff8f2;
+  font: inherit;
+  font-size: 16px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.item button.quiet,
+#pause {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule);
+}
+
+.review button:disabled { opacity: 0.6; cursor: wait; }
+
+.review-error { color: var(--oxblood-deep); min-height: 1.2em; }
+
+.item h2 { margin: 0; font-family: "Fraunces", Palatino, serif; font-size: 28px; font-weight: 560; }
+
+.item a { color: var(--oxblood-deep); }
+
+.walks { display: grid; gap: 4px; margin-top: 6px; }
+
+.checks label,
+.walks label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: "Newsreader", Palatino, serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.checks input,
+.walks input { width: auto; }
+
+.verified {
+  margin: 0;
+  white-space: pre-wrap;
+}
