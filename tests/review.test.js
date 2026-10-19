@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isChecked, quoteableDate } from "../site/tree.js";
-import { sectionsFromChapter } from "../functions/lib/discover.js";
+import { sessionLawsFromChapter } from "../functions/lib/discover.js";
 import {
   REVIEW_FIRST,
   RUN_LIMIT,
@@ -66,34 +66,22 @@ test("a new run cannot start while anything is waiting", () => {
   assert.match(REVIEW_FIRST, /not on the public record/);
 });
 
-test("the consolidated chapter list is the first source", () => {
+test("a chapter credit becomes one session law, not one current section", () => {
   const html = [
-    "<p><b>Sec.</b></p>",
-    "<p>6106. &nbsp;Firearms not to be carried without a license.</p>",
-    "<p>1972. &nbsp;Not a section.</p>",
-    "<p>6106. &nbsp;A later mention is not a second section.</p>",
-    "<p>6105.1. &nbsp;Restoration of firearm rights for offenses under prior laws of this Commonwealth.</p>",
+    "<p><b>Enactment.</b> Chapter 61 was added December 6, 1972, P.L.1482, No.334, effective in six months.</p>",
+    "<p>See &#167; 6308 (relating to something) and &#167; 6108(a)(7).</p>",
+    "<p><b>&#167; 6106. Firearms not to be carried without a license.</b></p>",
+    "<p>(Dec. 19, 1988, P.L.1275, No.158, eff. 180 days; June 13, 1995, 1st Sp.Sess., P.L.1024, No.17, eff. 120 days)</p>",
+    "<p><b>&#167; 6108. Carrying firearms on public streets or public property in Philadelphia.</b></p>",
+    "<p>(June 13, 1995, 1st Sp.Sess., P.L.1024, No.17, eff. 120 days; Nov. 10, 2005, P.L.335, No.66, eff. 180 days)</p>",
   ].join("\n");
-  const sections = sectionsFromChapter(html);
-  assert.deepEqual(sections, [
-    { number: "6106", title: "Firearms not to be carried without a license" },
-    { number: "6105.1", title: "Restoration of firearm rights for offenses under prior laws of this Commonwealth" },
+  const acts = sessionLawsFromChapter(html);
+  assert.deepEqual(acts.map((act) => [act.citation, act.sections]), [
+    ["Act of December 6, 1972, P.L. 1482, No. 334", []],
+    ["Act of Dec. 19, 1988, P.L. 1275, No. 158", ["6106"]],
+    ["Act of June 13, 1995, 1st Sp.Sess., P.L. 1024, No. 17", ["6106", "6108"]],
+    ["Act of Nov. 10, 2005, P.L. 335, No. 66", ["6108"]],
   ]);
-  const { queue } = addCandidates(emptyQueue(), record, [
-    {
-      title: "18 Pa.C.S. § 6106. Firearms not to be carried without a license",
-      citation: "18 Pa.C.S. § 6106",
-      sourceUrl: "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.061..HTM",
-    },
-    {
-      title: "A blog",
-      citation: "18 Pa.C.S. § 6107",
-      sourceUrl: "https://example.com/notes",
-    },
-  ]);
-  assert.equal(queue.items[0].sourceUrl, "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.061..HTM");
-  assert.equal(queue.items[1].sourceUrl, "");
-  assert.equal(queue.items[0].citation, "18 Pa.C.S. § 6106");
 });
 
 test("the scout stops at 100 and skips laws already in the record", () => {

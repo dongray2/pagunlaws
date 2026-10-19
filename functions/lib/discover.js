@@ -5,42 +5,91 @@ const WEB = [{ type: "web_search" }];
 
 export const CHAPTER_61_URL = "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.061..HTM";
 
-export function sectionsFromChapter(html) {
+const MONTHS = {
+  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3, apr: 4, april: 4, may: 5,
+  jun: 6, june: 6, jul: 7, july: 7, aug: 8, august: 8, sep: 9, sept: 9, september: 9,
+  oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12,
+};
+
+export function sessionLawsFromChapter(html) {
   const text = String(html)
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<\/p>/gi, "\n")
+    .replace(/&#167;|&#xA7;/gi, "§")
+    .replace(/&nbsp;|&#xA;/gi, " ")
+    .replace(/&amp;/gi, "&")
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&#xA;/gi, " ")
-    .replace(/&amp;/gi, "&");
-  const seen = new Set();
-  const sections = [];
-  const pattern = /(?:^|\n)\s*(\d{4}(?:\.\d+)?)\.\s+([^\n]+)/g;
+    .replace(/\s+/g, " ");
+  const marks = [];
+  const heading = /§\s*(6\d{3}(?:\.\d+)?)(?=\.\s+[A-Z])/g;
+  const act = /([A-Z][a-z]+\.?\s+\d{1,2},\s+\d{4})(?:,\s*(\d+(?:st|nd|rd|th)\s+Sp\.?\s*Sess\.?))?\s*,\s*P\.L\.\s*(\d+)\s*,\s*No\.\s*(\d+)/g;
   let match;
-  while ((match = pattern.exec(text))) {
+  while ((match = heading.exec(text))) {
     const number = match[1];
     const major = Number(number.split(".")[0]);
-    if (major < 6101 || major > 6199 || seen.has(number)) continue;
-    const title = match[2].replace(/\s+/g, " ").trim().replace(/\.$/, "");
-    if (!title) continue;
-    seen.add(number);
-    sections.push({ number, title });
+    if (major < 6101 || major > 6199) continue;
+    marks.push({ at: match.index, section: number });
   }
-  return sections;
+  while ((match = act.exec(text))) {
+    const when = actDate(match[1]);
+    if (!when) continue;
+    marks.push({
+      at: match.index,
+      ...when,
+      date: match[1],
+      session: match[2] ? match[2].replace(/\s+/g, " ") : "",
+      pl: match[3],
+      number: match[4],
+    });
+  }
+  marks.sort((a, b) => a.at - b.at);
+  let section = "";
+  const acts = new Map();
+  for (const mark of marks) {
+    if (mark.section) {
+      section = mark.section;
+      continue;
+    }
+    const key = `${mark.year}|${mark.session.toLowerCase()}|${mark.pl}|${mark.number}`;
+    const row = acts.get(key) || {
+      year: mark.year,
+      month: mark.month,
+      day: mark.day,
+      citation: actCitation(mark),
+      sections: [],
+    };
+    if (section && !row.sections.includes(section)) row.sections.push(section);
+    acts.set(key, row);
+  }
+  return [...acts.values()].sort((a, b) => a.year - b.year || a.month - b.month || a.day - b.day || a.citation.localeCompare(b.citation));
+}
+
+function actDate(dateText) {
+  const match = dateText.match(/^([A-Za-z]+)\.?\s+(\d{1,2}),\s+(\d{4})$/);
+  if (!match) return null;
+  const month = MONTHS[match[1].toLowerCase()];
+  if (!month) return null;
+  return { year: Number(match[3]), month, day: Number(match[2]) };
+}
+
+function actCitation(act) {
+  const session = act.session ? `, ${act.session}` : "";
+  return `Act of ${act.date}${session}, P.L. ${act.pl}, No. ${act.number}`;
 }
 
 export async function chapterCandidates() {
   const response = await fetch(CHAPTER_61_URL);
   if (!response.ok) throw new Error("The consolidated firearms chapter could not be opened.");
-  const sections = sectionsFromChapter(await response.text());
-  if (sections.length === 0) throw new Error("The consolidated firearms chapter did not list any sections.");
-  return sections.map((section) => ({
-    title: `18 Pa.C.S. § ${section.number}. ${section.title}`,
-    citation: `18 Pa.C.S. § ${section.number}`,
-    why: "Listed in 18 Pa.C.S. Chapter 61, Firearms and Other Dangerous Articles, on the General Assembly site.",
-    sourceUrl: CHAPTER_61_URL,
-  }));
+  const acts = sessionLawsFromChapter(await response.text());
+  if (acts.length === 0) throw new Error("The consolidated firearms chapter did not list any session laws.");
+  return acts.map((act) => {
+    const where = act.sections.length ? `§ ${act.sections.join(", § ")}` : "Chapter 61";
+    return {
+      title: act.citation,
+      citation: act.citation,
+      why: `Credited on 18 Pa.C.S. Chapter 61 at ${where}. Open this act in the Laws of Pennsylvania. The compiled section is not the text of the act.`,
+    };
+  });
 }
 
 export async function scout(apiKey, record, queue) {
@@ -50,9 +99,9 @@ export async function scout(apiKey, record, queue) {
   const room = RUN_LIMIT - seeded.queue.items.length;
   const input = [
     "You are finding Pennsylvania firearms legislation that is not already in a record.",
-    "The first source has already been read: the Pennsylvania Consolidated Statutes, Title 18, Chapter 61, Firearms and Other Dangerous Articles, on the General Assembly site.",
-    "Do not repeat a section from that chapter. It is already on the known list.",
-    "After that chapter, search for other enacted Pennsylvania firearms provisions, constitutional provisions about bearing arms, and appellate decisions that limit those statutes.",
+    "The session laws credited on Title 18, Chapter 61 have already been read from the General Assembly site. Each of those acts is one item, even where the act changed several sections.",
+    "Do not repeat an act on the known list. Do not return a current compiled section as an item.",
+    "After those acts, search the Laws of Pennsylvania for other firearms session laws that are not already known, including acts from before the 1972 codification. A constitutional provision about bearing arms, or an appellate decision that limits one of these laws, may also be an item.",
     "Do not include a bill that never became law.",
     "Do not include 23 Pa.C.S. § 6105. That section is not the firearms disability.",
     "The LRB book Pennsylvania Laws Relating to Firearms may help you find a provision. It is not the source for text or for an effective date.",
@@ -78,6 +127,7 @@ export async function researchItem(apiKey, record, item) {
     "Verified means you opened that page and copied. If you did not open it, the verified flag is false and the text is empty.",
     "Do not invent a quotation. Do not treat an approval or enactment date as the effective date.",
     "The effective date is the session law's effective-date clause, or the adoption date of a constitution, or the date of a decision.",
+    "When the item is an act, open that act in the Laws of Pennsylvania or the slip law. Copy from the act. The current compiled section is not the text of the act.",
     "If you only found an approval date, set dateKind to approval and say it is not the day the law began to bind.",
     "If you did not read the clause, set dateKind to unchecked, dateVerified to false, and leave the effective statement empty.",
     `Lanes: ${lanes}.`,
