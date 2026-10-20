@@ -89,6 +89,8 @@
 
 .detail { margin-top: 8px; }
 
+.detail > button { margin-top: 8px; }
+
 .links p { margin: 8px 0; }
 
 .item a { color: var(--oxblood-deep); }

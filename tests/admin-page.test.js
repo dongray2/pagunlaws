@@ -30,6 +30,10 @@ test("the review screen cannot publish or skip a waiting item", () => {
   assert.match(admin, /Show all/);
   assert.match(admin, /button\("Accept"/);
   assert.match(admin, /Research this item/);
+  const showAt = admin.indexOf('button("Show all"');
+  const researchAt = admin.indexOf('button("Research this item"');
+  const formAt = admin.indexOf('const form = document.createElement("form")');
+  assert.ok(showAt > -1 && researchAt > showAt && formAt > researchAt);
   assert.match(admin, /JSON\.stringify\(\{ id: item\.id \}\)/);
   assert.doesNotMatch(admin, /reviewStatus !== "pending"/);
   assert.match(admin, /Verified against the official source/);

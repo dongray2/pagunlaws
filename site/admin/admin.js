@@ -263,18 +263,23 @@ function renderItem(item) {
     problem.textContent = item.researchError;
     card.append(problem);
   }
+  const errorEl = messageLine();
   const show = button("Show all", "button", "quiet");
+  const research = button("Research this item", "button", "");
   const detail = document.createElement("div");
   detail.className = "detail";
   detail.hidden = !openItems.has(item.id);
+  research.hidden = detail.hidden;
   show.textContent = detail.hidden ? "Show all" : "Hide";
   show.addEventListener("click", () => {
     detail.hidden = !detail.hidden;
+    research.hidden = detail.hidden;
     if (detail.hidden) openItems.delete(item.id);
     else openItems.add(item.id);
     show.textContent = detail.hidden ? "Show all" : "Hide";
   });
-  detail.append(linkList(item));
+  research.addEventListener("click", () => researchOne(item, errorEl));
+  detail.append(research, errorEl, linkList(item));
   if (item.why) {
     const whyLabel = document.createElement("p");
     whyLabel.className = "lock";
@@ -286,7 +291,6 @@ function renderItem(item) {
   const form = document.createElement("form");
   const checks = document.createElement("div");
   checks.className = "checks";
-  const errorEl = messageLine();
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     sendDecision(item, "edit", form, errorEl);
@@ -326,18 +330,16 @@ function renderItem(item) {
   const actions = document.createElement("div");
   actions.className = "item-actions";
   const save = button("Save edits", "submit", "");
-  const research = button("Research this item", "button", "");
   const accept = button("Accept", "button", "");
   const reject = button("Reject", "button", "quiet");
-  research.addEventListener("click", () => researchOne(item, errorEl));
   accept.addEventListener("click", () => sendDecision(item, "approve", form, errorEl));
   reject.addEventListener("click", () => sendDecision(item, "reject", form, errorEl));
   if (!catalogReady) {
     save.disabled = true;
     accept.disabled = true;
   }
-  actions.append(research, save, accept, reject);
-  form.append(actions, errorEl);
+  actions.append(save, accept, reject);
+  form.append(actions);
   detail.append(form);
   card.append(show, detail);
   return card;
