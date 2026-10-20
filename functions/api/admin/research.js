@@ -9,9 +9,14 @@ export async function onRequestPost({ request, env }) {
   if (!env.XAI_API_KEY) return json({ error: "The review model is not configured yet." }, 503);
   const queue = await loadQueue(env);
   if (!queue) return json({ error: "The review queue is not configured yet." }, 503);
-  const index = queue.items.findIndex((item) => item.reviewStatus === "identified" || item.reviewStatus === "researching");
-  if (index < 0) {
-    return json({ remaining: 0, item: null });
+  const requestedId = await requestedItemId(request);
+  let index = -1;
+  if (requestedId) {
+    index = queue.items.findIndex((item) => item.id === requestedId);
+    if (index < 0) return json({ error: "That item is not waiting for review." }, 404);
+  } else {
+    index = queue.items.findIndex((item) => item.reviewStatus === "identified" || item.reviewStatus === "researching");
+    if (index < 0) return json({ remaining: 0, item: null });
   }
   const current = queue.items[index];
   current.reviewStatus = "researching";
@@ -28,4 +33,15 @@ export async function onRequestPost({ request, env }) {
   await saveQueue(env, queue);
   const remaining = queue.items.filter((item) => item.reviewStatus === "identified" || item.reviewStatus === "researching").length;
   return json({ remaining, item: queue.items[index] });
+}
+
+async function requestedItemId(request) {
+  const type = request.headers.get("content-type") || "";
+  if (!type.includes("application/json")) return "";
+  try {
+    const body = await request.json();
+    return body && typeof body.id === "string" ? body.id : "";
+  } catch {
+    return "";
+  }
 }

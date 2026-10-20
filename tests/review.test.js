@@ -8,6 +8,7 @@ import {
   addCandidates,
   applyEdits,
   applyFinding,
+  fillFinding,
   canStartRun,
   decide,
   emptyQueue,
@@ -104,6 +105,58 @@ test("unofficial text is not treated as verified", () => {
   assert.equal(clean.textVerified, false);
   assert.equal(clean.dateVerified, false);
   assert.equal(clean.dateKind, "unchecked");
+});
+
+test("research again fills empty fields and leaves a verified field alone", () => {
+  const item = {
+    id: "act-334",
+    title: "Act of December 6, 1972, P.L. 1482, No. 334",
+    titleVerified: true,
+    citation: "Act of December 6, 1972, P.L. 1482, No. 334",
+    citationVerified: false,
+    text: "",
+    textVerified: false,
+    sourceUrl: "",
+    effectiveStatement: "The effective date has not been read. Do not quote a date.",
+    dateKind: "unchecked",
+    dateVerified: false,
+    sort: "",
+    whatChanged: "",
+    lane: "",
+    walks: [],
+    status: "not_yet_checked",
+    notes: "Kept by the attorney.",
+    reviewStatus: "pending",
+  };
+  const filled = fillFinding(item, {
+    title: "A different title",
+    titleVerified: true,
+    citation: "Act of December 6, 1972, P.L. 1482, No. 334",
+    citationVerified: true,
+    text: "This act shall take effect in six months.",
+    textVerified: true,
+    sourceUrl: official,
+    effectiveStatement: "This act shall take effect in six months.",
+    dateKind: "effective",
+    dateVerified: true,
+    sort: "1973",
+    whatChanged: "The Crimes Code was enacted.",
+    lane: "possess",
+    walks: ["rights"],
+    status: "in_force",
+    notes: "",
+  }, record);
+  assert.equal(filled.title, item.title);
+  assert.equal(filled.titleVerified, true);
+  assert.equal(filled.text, "This act shall take effect in six months.");
+  assert.equal(filled.textVerified, true);
+  assert.equal(filled.dateKind, "effective");
+  assert.equal(filled.sort, "1973");
+  assert.equal(filled.notes, "Kept by the attorney.");
+  assert.equal(filled.reviewStatus, "pending");
+  const kept = fillFinding(filled, { text: "", textVerified: false, sourceUrl: "https://example.com/notes" }, record);
+  assert.equal(kept.text, filled.text);
+  assert.equal(kept.sourceUrl, official);
 });
 
 test("a verified field cannot be edited", () => {

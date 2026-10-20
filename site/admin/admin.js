@@ -31,6 +31,7 @@ let running = false;
 let stopAfterThis = false;
 let notice = "";
 let furtherBlocked = false;
+const openItems = new Set();
 
 gate.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -265,9 +266,12 @@ function renderItem(item) {
   const show = button("Show all", "button", "quiet");
   const detail = document.createElement("div");
   detail.className = "detail";
-  detail.hidden = true;
+  detail.hidden = !openItems.has(item.id);
+  show.textContent = detail.hidden ? "Show all" : "Hide";
   show.addEventListener("click", () => {
     detail.hidden = !detail.hidden;
+    if (detail.hidden) openItems.delete(item.id);
+    else openItems.add(item.id);
     show.textContent = detail.hidden ? "Show all" : "Hide";
   });
   detail.append(linkList(item));
@@ -322,15 +326,17 @@ function renderItem(item) {
   const actions = document.createElement("div");
   actions.className = "item-actions";
   const save = button("Save edits", "submit", "");
+  const research = button("Research this item", "button", "");
   const accept = button("Accept", "button", "");
   const reject = button("Reject", "button", "quiet");
+  research.addEventListener("click", () => researchOne(item, errorEl));
   accept.addEventListener("click", () => sendDecision(item, "approve", form, errorEl));
   reject.addEventListener("click", () => sendDecision(item, "reject", form, errorEl));
   if (!catalogReady) {
     save.disabled = true;
     accept.disabled = true;
   }
-  actions.append(save, accept, reject);
+  actions.append(research, save, accept, reject);
   form.append(actions, errorEl);
   detail.append(form);
   card.append(show, detail);
@@ -366,6 +372,32 @@ function messageLine() {
   line.className = "review-error decision-error";
   line.setAttribute("role", "status");
   return line;
+}
+
+async function researchOne(item, errorEl) {
+  if (running) return;
+  running = true;
+  openItems.add(item.id);
+  const card = errorEl && errorEl.closest("article");
+  const buttons = card ? [...card.querySelectorAll("button")] : [];
+  for (const node of buttons) node.disabled = true;
+  if (errorEl) errorEl.textContent = "Researching this item. Nothing is public until you accept it.";
+  try {
+    const result = await api("/api/admin/research", {
+      method: "POST",
+      body: JSON.stringify({ id: item.id }),
+    });
+    notice = result.item && result.item.researchError
+      ? result.item.researchError
+      : "Research finished for this item. Check the fields, then accept, edit, or reject it.";
+  } catch (error) {
+    if (errorEl) errorEl.textContent = error.message;
+    for (const node of buttons) node.disabled = false;
+    return;
+  } finally {
+    running = false;
+  }
+  await refresh();
 }
 
 async function sendDecision(item, action, form, errorEl) {

@@ -29,6 +29,8 @@ test("the review screen cannot publish or skip a waiting item", () => {
   assert.ok(runAt > -1 && furtherAt > runAt);
   assert.match(admin, /Show all/);
   assert.match(admin, /button\("Accept"/);
+  assert.match(admin, /Research this item/);
+  assert.match(admin, /JSON\.stringify\(\{ id: item\.id \}\)/);
   assert.doesNotMatch(admin, /reviewStatus !== "pending"/);
   assert.match(admin, /Verified against the official source/);
   assert.doesNotMatch(admin, /innerHTML/);

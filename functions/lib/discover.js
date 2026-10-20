@@ -1,5 +1,5 @@
 import { grokText, parseJsonObject } from "./grok.js";
-import { RUN_LIMIT, addCandidates, applyFinding, knownKeys } from "./review.js";
+import { RUN_LIMIT, addCandidates, fillFinding, knownKeys } from "./review.js";
 
 export const FURTHER_BATCH = 15;
 
@@ -134,6 +134,7 @@ export async function researchItem(apiKey, record, item) {
     "Do not invent a quotation. Do not treat an approval or enactment date as the effective date.",
     "The effective date is the session law's effective-date clause, or the adoption date of a constitution, or the date of a decision.",
     "When the item is an act, open that act in the Laws of Pennsylvania or the slip law. Copy from the act. The current compiled section is not the text of the act.",
+    "Fill every field you can from that official page. Leave a field empty only when that page did not contain it.",
     "If you only found an approval date, set dateKind to approval and say it is not the day the law began to bind.",
     "If you did not read the clause, set dateKind to unchecked, dateVerified to false, and leave the effective statement empty.",
     `Lanes: ${lanes}.`,
@@ -147,5 +148,5 @@ export async function researchItem(apiKey, record, item) {
   ].join("\n");
   const text = await grokText(apiKey, input, WEB);
   const parsed = parseJsonObject(text);
-  return applyFinding(item, parsed, record);
+  return fillFinding(item, parsed, record);
 }

@@ -188,6 +188,37 @@ export function applyFinding(item, raw, record) {
   };
 }
 
+export function fillFinding(item, raw, record) {
+  const clean = sanitizeFinding(raw, record);
+  const next = { ...item, reviewStatus: "pending", researchError: "" };
+  if (!item.titleVerified && clean.title) {
+    next.title = clean.title;
+    next.titleVerified = clean.titleVerified;
+  }
+  if (!item.citationVerified && clean.citation) {
+    next.citation = clean.citation;
+    next.citationVerified = clean.citationVerified;
+  }
+  if (!item.textVerified && clean.text) {
+    next.text = clean.text;
+    next.textVerified = clean.textVerified;
+  }
+  const sourceLocked = item.textVerified || item.citationVerified || item.dateVerified;
+  if (!sourceLocked && officialUrl(clean.sourceUrl)) next.sourceUrl = clean.sourceUrl;
+  if (!item.dateVerified && clean.dateVerified) {
+    next.effectiveStatement = clean.effectiveStatement;
+    next.dateKind = clean.dateKind;
+    next.dateVerified = true;
+    next.sort = clean.sort;
+  }
+  if (clean.whatChanged) next.whatChanged = clean.whatChanged;
+  if (clean.lane) next.lane = clean.lane;
+  if (clean.walks.length) next.walks = clean.walks;
+  if (clean.status && clean.status !== "not_yet_checked") next.status = clean.status;
+  if (clean.notes) next.notes = clean.notes;
+  return next;
+}
+
 export function applyEdits(item, edits) {
   const next = { ...item, walks: item.walks.slice() };
   const incoming = edits && typeof edits === "object" ? edits : {};
