@@ -1,3 +1,4 @@
+import { actBody, actTextUrl, clipActText } from "./act-text.js";
 import { grokText, parseJsonObject } from "./grok.js";
 import { RUN_LIMIT, addCandidates, fillFinding, knownKeys } from "./review.js";
 
@@ -124,29 +125,39 @@ export async function scoutFurther(apiKey, record, queue) {
 }
 
 export async function researchItem(apiKey, record, item) {
+  const url = actTextUrl(item && item.citation) || actTextUrl(item && item.title);
+  if (!url) throw new Error("This item has no session-law citation to open.");
+  let response;
+  try {
+    response = await fetch(url);
+  } catch {
+    throw new Error("The General Assembly page for this act could not be opened.");
+  }
+  if (!response.ok) throw new Error("The General Assembly page for this act could not be opened.");
+  const body = actBody(await response.text());
+  if (!body) throw new Error("The General Assembly page did not include the text of this act.");
   const lanes = (record.lanes || []).map((lane) => lane.id).join(", ");
   const topics = (record.topics || []).map((topic) => topic.id).filter((id) => id !== "all").join(", ");
   const input = [
-    "You are researching one Pennsylvania firearms law for a record a lawyer will review.",
-    "Search the web and open an official page before you mark any field verified.",
-    "Official pages are the General Assembly compiled statutes, the Laws of Pennsylvania or the slip law, the official constitution, or the court opinion. Federal text, when it changes the Pennsylvania question, comes from govinfo, the House Office of the Law Revision Counsel, Congress, or the Supreme Court.",
-    "Verified means you opened that page and copied. If you did not open it, the verified flag is false and the text is empty.",
-    "Do not invent a quotation. Do not treat an approval or enactment date as the effective date.",
-    "The effective date is the session law's effective-date clause, or the adoption date of a constitution, or the date of a decision.",
-    "When the item is an act, open that act in the Laws of Pennsylvania or the slip law. Copy from the act. The current compiled section is not the text of the act.",
-    "Fill every field you can from that official page. Leave a field empty only when that page did not contain it.",
-    "If you only found an approval date, set dateKind to approval and say it is not the day the law began to bind.",
-    "If you did not read the clause, set dateKind to unchecked, dateVerified to false, and leave the effective statement empty.",
+    "You are reading one Pennsylvania session law already fetched from the General Assembly.",
+    "Use only the act text below. Do not add words from any other source.",
+    `Set sourceUrl to ${url}.`,
+    "A verified flag is true only for a field you quoted from the act text.",
+    "Copy the effective-date clause into effectiveStatement.",
+    "If that clause gives a calendar date, or says the act takes effect immediately and the act states the approval date, set dateKind to effective, dateVerified to true, and sort to that four-digit year.",
+    "If the clause is only a delay, such as 60 days or six months, copy the clause and set dateVerified to false. Do not calculate a day the act does not state. Do not treat the approval date as the day the law began to bind.",
+    "If the act text has no effective-date clause, leave effectiveStatement empty and set dateVerified to false.",
+    "text is a quotation of the firearms portion of the act. Leave text empty when the act text has no firearms provision.",
+    "whatChanged is one sentence on what the act did to firearms law.",
     `Lanes: ${lanes}.`,
     `Walks: ${topics}.`,
     "Reply with one JSON object and nothing else:",
     '{"title":"","titleVerified":false,"citation":"","citationVerified":false,"text":"","textVerified":false,"sourceUrl":"","effectiveStatement":"","dateKind":"unchecked","dateVerified":false,"sort":"","whatChanged":"","lane":"","walks":[],"status":"not_yet_checked","notes":""}',
     "status is one of in_force, superseded, not_yet_checked, limited_by_court.",
-    "sort is the four-digit year of the checked date, or empty.",
-    "If the item includes a sourceUrl, open that official page first.",
-    `Item: ${JSON.stringify({ title: item.title, citation: item.citation, why: item.why, sourceUrl: item.sourceUrl || "" })}`,
+    "sort is the four-digit year of a checked effective date, or empty.",
+    `Act text:\n${clipActText(body)}`,
   ].join("\n");
-  const text = await grokText(apiKey, input, WEB);
-  const parsed = parseJsonObject(text);
+  const parsed = parseJsonObject(await grokText(apiKey, input));
+  parsed.sourceUrl = url;
   return fillFinding(item, parsed, record);
 }

@@ -145,7 +145,7 @@ export function sanitizeFinding(raw, record) {
   if (!dateVerified) {
     dateKind = "unchecked";
     sort = "";
-    statement = UNREAD_DATE;
+    if (!official || statement === "") statement = UNREAD_DATE;
   }
   const lanes = new Set(((record && record.lanes) || []).map((lane) => lane.id));
   const topics = new Set(((record && record.topics) || []).map((topic) => topic.id).filter((id) => id !== "all"));
@@ -210,6 +210,8 @@ export function fillFinding(item, raw, record) {
     next.dateKind = clean.dateKind;
     next.dateVerified = true;
     next.sort = clean.sort;
+  } else if (!item.dateVerified && clean.effectiveStatement !== UNREAD_DATE) {
+    next.effectiveStatement = clean.effectiveStatement;
   }
   if (clean.whatChanged) next.whatChanged = clean.whatChanged;
   if (clean.lane) next.lane = clean.lane;

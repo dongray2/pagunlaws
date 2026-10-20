@@ -159,6 +159,44 @@ test("research again fills empty fields and leaves a verified field alone", () =
   assert.equal(kept.sourceUrl, official);
 });
 
+test("a read clause stays when the act states no calendar year", () => {
+  const item = {
+    id: "delay",
+    title: "Act of Oct. 4, 1994, P.L. 571, No. 84",
+    citation: "Act of Oct. 4, 1994, P.L. 571, No. 84",
+    titleVerified: false,
+    citationVerified: false,
+    text: "",
+    textVerified: false,
+    sourceUrl: "",
+    effectiveStatement: "The effective date has not been read. Do not quote a date.",
+    dateKind: "unchecked",
+    dateVerified: false,
+    sort: "",
+    whatChanged: "",
+    lane: "",
+    walks: [],
+    status: "not_yet_checked",
+    notes: "",
+  };
+  const filled = fillFinding(item, {
+    sourceUrl: official,
+    text: "Section 6106 is amended.",
+    textVerified: true,
+    effectiveStatement: "This act shall take effect in 60 days.",
+    dateKind: "effective",
+    dateVerified: false,
+    sort: "",
+  }, record);
+  assert.equal(filled.effectiveStatement, "This act shall take effect in 60 days.");
+  assert.equal(filled.dateVerified, false);
+  assert.equal(filled.dateKind, "unchecked");
+  assert.equal(filled.sort, "");
+  const approved = decide({ items: [filled], rejected: [], approved: [], further: "pending" }, record, { id: filled.id, type: "approve" });
+  assert.equal(isChecked(approved.moment), false);
+  assert.equal(approved.moment.effectiveStatement.includes("Do not quote a date"), true);
+});
+
 test("a verified field cannot be edited", () => {
   const item = applyFinding({ id: "license", title: "old", reviewStatus: "identified" }, verifiedFinding(), record);
   assert.throws(
