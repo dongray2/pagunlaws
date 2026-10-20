@@ -12,7 +12,37 @@ import {
   storedText,
 } from "../site/tree.js";
 
-const record = JSON.parse(readFileSync(new URL("../data/record.json", import.meta.url), "utf8"));
+const shipped = JSON.parse(readFileSync(new URL("../data/record.json", import.meta.url), "utf8"));
+
+const curated = shipped.topics.filter((topic) => topic.id !== "all").map((topic) => topic.id);
+
+function moment(id, lane, walks) {
+  return {
+    id,
+    sort: "1995",
+    dateKind: "unchecked",
+    lane,
+    title: id,
+    status: "not_yet_checked",
+    citation: null,
+    effectiveStatement: "The effective date has not been read. Do not quote a date.",
+    whatChanged: null,
+    text: null,
+    textState: "not_loaded",
+    walks,
+  };
+}
+
+const record = {
+  topics: shipped.topics,
+  lanes: shipped.lanes,
+  moments: [
+    moment("pa-article-i-21", "right", curated),
+    moment("persons-not-to-possess", "possess", ["rights", "transfer"]),
+    moment("restoration-prior-laws", "possess", ["rights"]),
+    moment("federal-firearms-disability", "federal", ["rights", "preemption"]),
+  ],
+};
 
 test("topics start with All Laws and include loss and restoration after transfer", () => {
   assert.equal(record.topics[0].label, "All Laws");
@@ -32,6 +62,10 @@ test("topics start with All Laws and include loss and restoration after transfer
       "Preemption and supremacy",
     ],
   );
+});
+
+test("the public record starts with no laws", () => {
+  assert.deepEqual(shipped.moments, []);
 });
 
 test("Article I, Section 21 is on every curated walk", () => {

@@ -171,7 +171,8 @@ function renderColumn(record, current) {
     columnEl.append(button);
   });
   if (!current.moments.length && !current.outside.length) {
-    columnEl.append(el("p", "missing", "Nothing on the record matched."));
+    const sentence = current.mode === "all" ? "Nothing is on the record yet." : "Nothing on the record matched.";
+    columnEl.append(el("p", "missing", sentence));
   }
 }
 
