@@ -1,5 +1,7 @@
+import { sourceLinks } from "./links.js";
+
 const TOKEN_KEY = "pagunlaws-review";
-const BLOCKED = "A new run cannot be completed while legislation is still waiting. Approve, edit, or reject each item first. Unapproved legislation is not on the public record.";
+const BLOCKED = "A new run cannot be completed while legislation is still waiting. Accept, edit, or reject each item first. Unapproved legislation is not on the public record.";
 
 const STATUSES = [
   { value: "in_force", label: "In force" },
@@ -210,7 +212,7 @@ async function researchUntilPaused() {
       statusEl.textContent = `Researching. ${result.remaining} still to research. Nothing here is on the public record.`;
     }
     if (stopAfterThis && unfinished) notice = "Paused. Finish the items that are ready, then continue research. Another run waits until the queue is empty.";
-    else notice = "Research finished. Approve, edit, or reject each waiting item. Nothing is on the public record until you approve it.";
+    else notice = "Research finished. Accept, edit, or reject each waiting item. Nothing is on the public record until you accept it.";
   } catch (error) {
     failure = error.message;
   } finally {
@@ -243,32 +245,39 @@ function renderItem(item) {
   const title = document.createElement("h2");
   title.textContent = item.title || "Untitled";
   card.append(title);
+  if (item.citation && item.citation !== item.title) {
+    const citation = document.createElement("p");
+    citation.textContent = item.citation;
+    card.append(citation);
+  }
   const state = document.createElement("p");
   state.className = "lock";
   state.textContent = item.reviewStatus === "pending"
     ? "Waiting for your review. Not on the public record."
     : "Found, not researched. Not on the public record.";
   card.append(state);
-  if (item.why) {
-    const why = document.createElement("p");
-    why.textContent = item.why;
-    card.append(why);
-  }
   if (item.researchError) {
     const problem = document.createElement("p");
     problem.className = "review-error";
     problem.textContent = item.researchError;
     card.append(problem);
   }
-  if (item.reviewStatus !== "pending") {
-    const errorEl = messageLine();
-    const reject = button("Reject", "button", "quiet");
-    reject.addEventListener("click", () => sendDecision(item, "reject", null, errorEl));
-    const actions = document.createElement("div");
-    actions.className = "item-actions";
-    actions.append(reject);
-    card.append(actions, errorEl);
-    return card;
+  const show = button("Show all", "button", "quiet");
+  const detail = document.createElement("div");
+  detail.className = "detail";
+  detail.hidden = true;
+  show.addEventListener("click", () => {
+    detail.hidden = !detail.hidden;
+    show.textContent = detail.hidden ? "Show all" : "Hide";
+  });
+  detail.append(linkList(item));
+  if (item.why) {
+    const whyLabel = document.createElement("p");
+    whyLabel.className = "lock";
+    whyLabel.textContent = "Why it was listed";
+    const why = document.createElement("p");
+    why.textContent = item.why;
+    detail.append(whyLabel, why);
   }
   const form = document.createElement("form");
   const checks = document.createElement("div");
@@ -313,18 +322,43 @@ function renderItem(item) {
   const actions = document.createElement("div");
   actions.className = "item-actions";
   const save = button("Save edits", "submit", "");
-  const approve = button("Approve", "button", "");
+  const accept = button("Accept", "button", "");
   const reject = button("Reject", "button", "quiet");
-  approve.addEventListener("click", () => sendDecision(item, "approve", form, errorEl));
+  accept.addEventListener("click", () => sendDecision(item, "approve", form, errorEl));
   reject.addEventListener("click", () => sendDecision(item, "reject", form, errorEl));
   if (!catalogReady) {
     save.disabled = true;
-    approve.disabled = true;
+    accept.disabled = true;
   }
-  actions.append(save, approve, reject);
+  actions.append(save, accept, reject);
   form.append(actions, errorEl);
-  card.append(form);
+  detail.append(form);
+  card.append(show, detail);
   return card;
+}
+
+function linkList(item) {
+  const box = document.createElement("div");
+  box.className = "links";
+  const links = sourceLinks(item);
+  if (links.length === 0) {
+    const empty = document.createElement("p");
+    empty.textContent = "No official page is stored for this item.";
+    box.append(empty);
+    return box;
+  }
+  for (const link of links) {
+    const row = document.createElement("p");
+    const anchor = document.createElement("a");
+    anchor.href = link.href;
+    anchor.target = "_blank";
+    anchor.rel = "noreferrer";
+    anchor.textContent = link.label;
+    row.append(anchor);
+    if (link.note) row.append(document.createTextNode(` ${link.note}`));
+    box.append(row);
+  }
+  return box;
 }
 
 function messageLine() {
@@ -360,8 +394,8 @@ async function sendDecision(item, action, form, errorEl) {
       const moment = payload.moment;
       const quoteable = moment && moment.dateKind !== "unchecked" && moment.text && moment.citation;
       notice = quoteable
-        ? "Approved. The checked text can appear on the public record."
-        : "Approved. The date or text was not verified, so the public record will not quote it as fact.";
+        ? "Accepted. The checked text can appear on the public record."
+        : "Accepted. The date or text was not verified, so the public record will not quote it as fact.";
       if (payload.git) notice = `${notice} ${payload.git}`;
     }
     if (action === "reject") notice = "Rejected. It is not on the public record.";

@@ -27,6 +27,9 @@ test("the review screen cannot publish or skip a waiting item", () => {
   const runAt = admin.indexOf('"/api/admin/run"');
   const furtherAt = admin.indexOf('"/api/admin/further"');
   assert.ok(runAt > -1 && furtherAt > runAt);
+  assert.match(admin, /Show all/);
+  assert.match(admin, /button\("Accept"/);
+  assert.doesNotMatch(admin, /reviewStatus !== "pending"/);
   assert.match(admin, /Verified against the official source/);
   assert.doesNotMatch(admin, /innerHTML/);
   assert.match(review, /export function canStartRun/);

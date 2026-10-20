@@ -87,6 +87,10 @@
 
 .item h2 { margin: 0; font-family: "Fraunces", Palatino, serif; font-size: 28px; font-weight: 560; }
 
+.detail { margin-top: 8px; }
+
+.links p { margin: 8px 0; }
+
 .item a { color: var(--oxblood-deep); }
 
 .walks { display: grid; gap: 4px; margin-top: 6px; }
